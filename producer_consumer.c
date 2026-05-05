@@ -33,14 +33,19 @@ void *producer(void *arg) {
         pthread_mutex_unlock(&mutex);
     }
 
+    // send termination signal safely
     pthread_mutex_lock(&mutex);
+
+    while (count == BUFFER_SIZE)
+        pthread_cond_wait(&not_full, &mutex);
+
     buffer[in] = '\0';
     in = (in + 1) % BUFFER_SIZE;
     count++;
+
     pthread_cond_signal(&not_empty);
     pthread_mutex_unlock(&mutex);
-
-    pthread_exit(NULL);
+        pthread_exit(NULL);
 }
 
 void *consumer(void *arg) {
